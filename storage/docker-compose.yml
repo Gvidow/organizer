@@ -1,0 +1,26 @@
+version: '3'
+
+# docker-compose up
+
+# docker rm $(docker ps -a -q)
+# docker volume prune -f
+
+services:
+  mysql:
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_USER: user
+      MYSQL_PASSWORD: love
+      MYSQL_DATABASE: organizer
+    ports:
+      - '3306:3306'
+    volumes:
+      - './_sql/:/docker-entrypoint-initdb.d/'
+    container_name: mysql_organizer
+
+  adminer:
+    image: adminer
+    ports:
+      - 8090:8080
