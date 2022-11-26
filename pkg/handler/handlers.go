@@ -56,8 +56,10 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 		Name:    "session",
 		Value:   sessionId,
 		Expires: time.Now().AddDate(0, 1, 0),
+		Path:    "/",
 	}
 	http.SetCookie(w, cookie)
+	log.Println("set cookie")
 	http.Redirect(w, r, "/main", http.StatusFound)
 }
 
@@ -70,4 +72,14 @@ func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fmt.Fprintln(w, "Такой логин уже есть")
 	}
+}
+
+func (h *Handler) updateCookie(w http.ResponseWriter, r *http.Request) {
+	newDate := r.FormValue("date")
+	c, _ := r.Cookie("session")
+	sessionId := c.Value
+	log.Println(newDate, sessionId)
+	service.UpdateDate(h.DB, sessionId, newDate)
+
+	http.Redirect(w, r, "/main", http.StatusFound)
 }
