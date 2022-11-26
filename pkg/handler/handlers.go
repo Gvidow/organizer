@@ -19,7 +19,6 @@ func (h *Handler) redirectToMain(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
 	c, err := r.Cookie("session")
 	if err == nil {
 		log.Println(c.Value, "dfdfs")
@@ -59,6 +58,7 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 		Expires: time.Now().AddDate(0, 1, 0),
 	}
 	http.SetCookie(w, cookie)
+	http.Redirect(w, r, "/main", http.StatusFound)
 }
 
 func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
