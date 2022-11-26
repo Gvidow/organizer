@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/gvidow/organizer/pkg/service"
 )
@@ -21,8 +22,8 @@ func (h *Handler) redirectToMain(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) mainPage(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("session")
 	if err == nil {
-		log.Println(c.Value, "dfdfs")
-		fmt.Fprintln(w, "hello")
+		log.Println("handler: mainPage: user in ", c.Value, "session")
+		WriteFile(w, PathFront+"html/main_user.html")
 		return
 	}
 	if err := WriteFile(w, PathFront+"html/main_page.html"); err != nil {
@@ -52,6 +53,7 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err)
 		return
 	}
+	log.Println("handler: signIn: create sessionId", sessionId)
 	cookie := &http.Cookie{
 		Name:    "session",
 		Value:   sessionId,
@@ -66,11 +68,22 @@ func (h *Handler) signIn(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) signUp(w http.ResponseWriter, r *http.Request) {
 	login := r.FormValue("login")
 	password := r.FormValue("password")
-	if service.RegisterUser(h.DB, login, password) {
+	err := service.RegisterUser(h.DB, login, password, true)
+	if err == nil {
 		log.Println("create new user", login)
 		http.Redirect(w, r, "/main", http.StatusFound)
-	} else {
-		fmt.Fprintln(w, "Такой логин уже есть")
+		return
+	}
+	switch e := err.(*mysql.MySQLError); e.Number {
+	case uint16(1062):
+		log.Println("handelr: signUp: login exist", login)
+		fmt.Fprintln(w, "handelr: signUp: login exist")
+	case uint16(1366):
+		log.Println("handelr: signUp: error encoding", login)
+		fmt.Fprintln(w, "handelr: signUp: error encoding")
+	default:
+		log.Println("handelr: signUp: new error", login)
+		fmt.Fprintln(w, "handelr: signUp: new error")
 	}
 }
 
@@ -79,7 +92,8 @@ func (h *Handler) updateCookie(w http.ResponseWriter, r *http.Request) {
 	c, _ := r.Cookie("session")
 	sessionId := c.Value
 	log.Println(newDate, sessionId)
-	service.UpdateDate(h.DB, sessionId, newDate)
+	//service.UpdateDate(h.DB, sessionId, newDate)
 
-	http.Redirect(w, r, "/main", http.StatusFound)
+	//http.Redirect(w, r, "/main", http.StatusFound)
+	fmt.Fprintln(w, "New date", newDate)
 }

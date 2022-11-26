@@ -6,10 +6,12 @@ import (
 	"log"
 )
 
-func AddUser(db *sql.DB, login, hashPassword string) bool {
+func AddUser(db *sql.DB, login, hashPassword string) error {
 	_, err := db.Exec("INSERT INTO user(user_login, password_hash) VALUES (?, ?);", login, hashPassword)
-	log.Println("add user", err, login, hashPassword, len(hashPassword), len([]byte(hashPassword)))
-	return err == nil
+	log.Println("db: add user", err)
+	//log.Println("db: add user: ", err, reflect.TypeOf(err))
+	//log.Println("add user", err, login, hashPassword, len(hashPassword), len([]byte(hashPassword)))
+	return err
 }
 
 func CheckUser(db *sql.DB, login, hashPassword string) (int, error) {
@@ -41,4 +43,9 @@ func AddSession(db *sql.DB, sessionId string, userId int, date string) bool {
 	_, err := db.Exec("INSERT INTO _session(session_id, user_id, use_date) VALUES (?, ?, ?);", sessionId, userId, date)
 	log.Println(err, len(sessionId))
 	return err == nil
+}
+
+func AddTask(db *sql.DB, title, desc, subj, exam string) int {
+	log.Println(db, title, desc, subj, exam)
+	return 0
 }

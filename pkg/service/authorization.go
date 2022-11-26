@@ -7,8 +7,11 @@ import (
 	"github.com/gvidow/organizer/pkg/repository"
 )
 
-func RegisterUser(db *sql.DB, login, password string) bool {
-	return repository.AddUser(db, login, HashPassword(password))
+func RegisterUser(db *sql.DB, login, password string, flag bool) error {
+	if flag {
+		password = HashPassword(password)
+	}
+	return repository.AddUser(db, login, password)
 }
 
 func SignIn(db *sql.DB, login, password string) (string, error) {

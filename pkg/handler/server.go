@@ -25,10 +25,12 @@ func (s *Server) HangHandlers() {
 	router := mux.NewRouter()
 	router.HandleFunc("/", s.customHandler.redirectToMain)
 	router.HandleFunc("/main", s.customHandler.mainPage).Methods("GET")
-	router.HandleFunc("/updatecookie", s.customHandler.updateCookie).Methods("POST")
+	router.HandleFunc("/update/date", s.customHandler.updateCookie).Methods("POST")
 	router.HandleFunc("/user/sign{sign}", s.customHandler.writeSignIn).Methods("GET")
 	router.HandleFunc("/user/signin", s.customHandler.signIn).Methods("POST")
 	router.HandleFunc("/user/signup", s.customHandler.signUp).Methods("POST")
+	router.HandleFunc("/api/user/signup", s.customHandler.api).Methods("POST")
+	router.HandleFunc("/api/user/addtask", s.customHandler.addTask).Methods("POST")
 	//router.HandleFunc("/user/home", s.customHandler.userHome).Methods("GET")
 	//router.HandleFunc("/office", s.customHandler.office).Methods("GET")
 	s.Handler = router
