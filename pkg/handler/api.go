@@ -208,3 +208,64 @@ func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintln(w, string(resByte))
 }
+
+func (h *Handler) apiUpdate(w http.ResponseWriter, r *http.Request) {
+	fmt.Print("\n\n\n")
+	defer fmt.Print("\n\n\n")
+	fmt.Print(sep, "\nREQUEST /api/user/updatetask\n\n")
+	defer fmt.Println("\nRequest end\n", sep)
+	log.Println("api: updateTask: ", r)
+	t := r.Header["Content-Type"]
+	log.Println("api", t, r.Method)
+	fmt.Println(sep)
+	//io.Copy(os.Stdout, r.Body)
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println("api: update: read body error")
+	}
+	//str := string(b[1 : len(b)-1])
+	str := string(b)
+	//str = str[1 : len(str)-1]
+	// log.Println("0 char", str[0], string(str[len(str)-1]))
+	// log.Println("[]byte", err, str)
+	//      n   bodyJSON := json.NewDecoder(r.Body)
+	// tasksAdd := &data{}
+	// err := bodyJSON.Decode(&tasksAdd)
+	// if err != nil {
+	// 	fmt.Fprintln(w, `{"status": "ok", "info": "body reading ok"`)
+	// 	return
+	// }
+	tasksAdd := &service.Data{}
+	//          err := bodyJSON.Decode(tasksAdd)
+	err = json.Unmarshal([]byte(str), tasksAdd)
+	if err != nil {
+		log.Println("decode error", err)
+		fmt.Fprintln(w, `{"status": "ok", "info": "body reading ok"`)
+		return
+	}
+	if err != nil {
+		log.Println("")
+	}
+	log.Println(tasksAdd)
+	userId, sessionId := service.GetID(h.DB, tasksAdd)
+	service.UpdateTasks(h.DB, userId, tasksAdd)
+	//log.Println(n, err)
+	log.Println("handelr: addTask: request", err, tasksAdd)
+
+	////
+	res, err := service.GetTasksAll(h.DB, sessionId)
+	if err != nil {
+		log.Println("api: getTask: get task all error:", err)
+		fmt.Fprintln(w, `{"status": "error", "info": "no rows in result set"}`)
+		return
+	}
+	log.Println("api: getTask: get task ok:", res)
+	fmt.Println(sep)
+	resByte, err := json.Marshal(res)
+	if err != nil {
+		log.Println("api: getTask: get task marshal:", err)
+		fmt.Fprintln(w, `{"status": "error", "info": "ferror data marshal"}`)
+		return
+	}
+	fmt.Fprintln(w, string(resByte))
+}

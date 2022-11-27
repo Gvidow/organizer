@@ -35,7 +35,7 @@ func (s *Server) HangHandlers() {
 	router.HandleFunc("/user/logout", s.customHandler.logout).Methods("POST")
 	router.HandleFunc("/api/user/logout", s.customHandler.apiLogout).Methods("POST")
 	router.HandleFunc("/api/user/gettask", s.customHandler.getTasks).Methods("POST")
-	//router.HandleFunc("/api/user/updatetask", s.customHandler.apiAddTasks).Method("POST")
+	router.HandleFunc("/api/user/updatetask", s.customHandler.apiUpdate).Methods("POST")
 	//router.HandleFunc("/user/home", s.customHandler.userHome).Methods("GET")
 	//router.HandleFunc("/office", s.customHandler.office).Methods("GET")
 	s.Handler = router

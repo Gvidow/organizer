@@ -59,7 +59,7 @@ func AddTask(db *sql.DB, id int, task *Task) error {
 func GetUser(db *sql.DB, sessionId string) (int, string, error) {
 	var userId int
 	var userLogin string
-	row := db.QueryRow("SELECT _session.user_id, user_login FROM _session INNER JOIN user ON _session.user_id = user.user_id WHERE session_id = ?", sessionId)
+	row := db.QueryRow("SELECT _session.user_id, user_login FROM _session INNER JOIN user ON _session.user_id = user.user_id WHERE session_id = ?;", sessionId)
 	if err := row.Err(); err != nil {
 		log.Println("db: getUser: select error", err)
 	}
@@ -73,7 +73,7 @@ func GetUser(db *sql.DB, sessionId string) (int, string, error) {
 }
 
 func UserTasksAll(db *sql.DB, userId int, sessionId string) ([]Task, error) {
-	rows, err := db.Query("SELECT task_title, task_description, task_date, task_subject, task_exam, task_mark FROM task WHERE user_id = ? ORDER BY task_mark", userId)
+	rows, err := db.Query("SELECT task_title, task_description, task_date, task_subject, task_exam, task_mark FROM task WHERE user_id = ? ORDER BY task_mark DESC;", userId)
 	if err != nil {
 		log.Println("rep: userTaskAll: select error:", err)
 		return nil, err
@@ -97,4 +97,8 @@ func UserTasksAll(db *sql.DB, userId int, sessionId string) ([]Task, error) {
 	rows.Close()
 	return res, nil
 
+}
+
+func DelTask(db *sql.DB, userId int) {
+	db.Exec("DELETE FROM task WHERE user_id = ?;", userId)
 }
