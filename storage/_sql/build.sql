@@ -11,8 +11,8 @@ CREATE TABLE task(
     task_description VARCHAR(50),
     task_date DATETIME,
     task_subject VARCHAR(50),
-    task_exam VARCHAR(2),
-    task_mark INT,
+    task_exam VARCHAR(10),
+    task_mark DECIMAL(10, 6),
     FOREIGN KEY (user_id)
         REFERENCES user(user_id)
         ON DELETE CASCADE

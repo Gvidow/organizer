@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -32,16 +33,22 @@ type user struct {
 	Password string
 }
 
+const sep = "========================================"
+
 func (h *Handler) apiSignUp(w http.ResponseWriter, r *http.Request) {
+	log.Println("request", r)
+	//io.Copy(os.Stdout, r.Body)
 	t := r.Header["Content-Type"]
 	log.Println("api", t, r.Method)
 	bodyJSON := json.NewDecoder(r.Body)
 	userReg := &user{}
 	err := bodyJSON.Decode(userReg)
 	if err != nil {
+		log.Println("api sign", err)
 		fmt.Fprintln(w, `{"status": "error", "info": "body reading error"`)
 		return
 	}
+	log.Println("aaaaaaaaaaaaaaa", err, "login", userReg.Login, userReg.Password)
 	err = service.RegisterUser(h.DB, userReg.Login, userReg.Password, true)
 	if err == nil {
 		log.Println("create new user", userReg.Login)
@@ -62,6 +69,10 @@ func (h *Handler) apiSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) apiSignIn(w http.ResponseWriter, r *http.Request) {
+	log.Println("Idy na vhod")
+	cok, err := r.Cookie("session")
+	log.Println(err, cok)
+	log.Println("request", r)
 	cookie, err := r.Cookie("session")
 	if err == nil {
 		log.Println(12)
@@ -95,16 +106,37 @@ func (h *Handler) apiSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) apiAddTasks(w http.ResponseWriter, r *http.Request) {
+	fmt.Print(sep, "\nREQUEST /api/user/addtask\n\n")
+	defer fmt.Println("\nRequest end\n", sep)
+	log.Println("api: addTask: ", r)
 	t := r.Header["Content-Type"]
 	log.Println("api", t, r.Method)
-	bodyJSON := json.NewDecoder(r.Body)
-	tasksAdd := &data{}
-	err := bodyJSON.Decode(&tasksAdd)
+	fmt.Println(sep)
+	//io.Copy(os.Stdout, r.Body)
+	b, err := ioutil.ReadAll(r.Body)
+	//str := string(b[1 : len(b)-1])
+	str := string(b)
+	//str = str[1 : len(str)-1]
+	log.Println("0 char", str[0], string(str[len(str)-1]))
+	log.Println("[]byte", err, str)
+	//      n   bodyJSON := json.NewDecoder(r.Body)
+	// tasksAdd := &data{}
+	// err := bodyJSON.Decode(&tasksAdd)
+	// if err != nil {
+	// 	fmt.Fprintln(w, `{"status": "ok", "info": "body reading ok"`)
+	// 	return
+	// }
+	tasksAdd := &service.Data{}
+	//          err := bodyJSON.Decode(tasksAdd)
+	err = json.Unmarshal([]byte(str), tasksAdd)
 	if err != nil {
+		log.Println("decode error", err)
 		fmt.Fprintln(w, `{"status": "ok", "info": "body reading ok"`)
 		return
 	}
 	log.Println(tasksAdd)
+	n, err := service.AddTasks(h.DB, tasksAdd)
+	log.Println(n, err)
 	log.Println("handelr: addTask: request", err, tasksAdd)
 	// log.Println("handler: add task: body parse ", taskAdd)
 	// err = service.RegisterUser(h.DB, userReg.Login, userReg.Password, true)
@@ -139,4 +171,40 @@ func (h *Handler) apiLogout(w http.ResponseWriter, r *http.Request) {
 	cookie.Expires = time.Now().AddDate(0, -1, 0)
 	cookie.Path = "/"
 	http.SetCookie(w, cookie)
+}
+
+func (h *Handler) getTasks(w http.ResponseWriter, r *http.Request) {
+	fmt.Print(sep, "\nREQUEST /api/user/gettask\n\n")
+	defer fmt.Println("\nRequest end\n", sep)
+	log.Println("api: getTask: ", r)
+	fmt.Println(sep)
+	session := make(map[string]string)
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&session)
+	if err != nil {
+		log.Println("api: getTask: decode", err)
+		fmt.Fprintln(w, `{"status": "error", "info": "error decode"}`)
+		return
+	}
+	sessionId, ok := session["session"]
+	if !ok {
+		log.Println("api: getTask: get session error")
+		fmt.Fprintln(w, `{"status": "error", "info": "get session error"}`)
+		return
+	}
+	res, err := service.GetTasksAll(h.DB, sessionId)
+	if err != nil {
+		log.Println("api: getTask: get task all error:", err)
+		fmt.Fprintln(w, `{"status": "error", "info": "no rows in result set"}`)
+		return
+	}
+	log.Println("api: getTask: get task ok:", res)
+	fmt.Println(sep)
+	resByte, err := json.Marshal(res)
+	if err != nil {
+		log.Println("api: getTask: get task marshal:", err)
+		fmt.Fprintln(w, `{"status": "error", "info": "ferror data marshal"}`)
+		return
+	}
+	fmt.Fprintln(w, string(resByte))
 }
