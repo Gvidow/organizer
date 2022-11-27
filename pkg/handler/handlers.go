@@ -97,3 +97,15 @@ func (h *Handler) updateCookie(w http.ResponseWriter, r *http.Request) {
 	//http.Redirect(w, r, "/main", http.StatusFound)
 	fmt.Fprintln(w, "New date", newDate)
 }
+
+func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session")
+	log.Println("handler: apiLogout:", r.Method, err)
+	if err != nil {
+		fmt.Fprintf(w, `{"status": "error", "info": "error cookie"}`)
+	}
+	cookie.Expires = time.Now().AddDate(0, -1, 0)
+	cookie.Path = "/"
+	http.SetCookie(w, cookie)
+	http.Redirect(w, r, "/main", http.StatusFound)
+}

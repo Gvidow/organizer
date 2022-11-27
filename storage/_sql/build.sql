@@ -7,10 +7,12 @@ CREATE TABLE user(
 CREATE TABLE task(
     task_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
-    task_date DATE NOT NULL,
-    task_position INT NOT NULL,
-    task_title VARCHAR(255),
-    task_description VARCHAR(255),
+    task_title VARCHAR(50),
+    task_description VARCHAR(50),
+    task_date DATETIME,
+    task_subject VARCHAR(50),
+    task_exam VARCHAR(2),
+    task_mark INT,
     FOREIGN KEY (user_id)
         REFERENCES user(user_id)
         ON DELETE CASCADE
